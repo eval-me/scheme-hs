@@ -75,13 +75,81 @@ string (x:xs) = do
   t <- string xs
   return (h : t)
 
+ignore :: Char -> Parser ()
+ignore c = (many (==c)) *> return ()  
+
 -- Start of the Scheme Parser
+whitespace :: Parser ()
+whitespace = ignore ' ' <|> ignore '\n' <|> ignore '\t'
 
+symbol :: Parser Expression
+symbol = do
+  h <- sat isAlphabetic
+  t <- many isSymbolChar
+  return (Symbol (h : t))
 
+number :: Parser Expression
+number = do
+  sign    <- string "-" <|> pure ""
+  integer <- some isDigit
+  decimal <- (do
+                 dot <- string "."
+                 end <- some isDigit <|> string "0" 
+                 return (dot ++ end))
+             <|> pure ""
+             
+  return (Number (read (sign ++ integer ++ decimal) :: Double))
 
--- Remember that because we are "altering the state" of the parsed string, we can use recursion to create recursive descent parsing by sequencing parsers. For example, if we have a parser that parses parentheses and the content in them, we don't have to worry about the content in them if we do:
--- _    <- char '('
--- body <- expression 
--- _    <- char ')' 
--- Parentheses body.
--- In general cons cells and lists are done because of this...
+text :: Parser Expression
+text = do
+  _ <- char '"'
+  content <- many (/='\"')
+  _ <- char '"'
+  return (Text content)
+
+character :: Parser Expression
+character = do
+  _ <- char '\''
+  content <- sat (/='\'')
+  _ <- char '\''
+  return (Character content)
+
+boolean :: Parser Expression
+boolean = do
+  val <- string "true" <|> string "false"
+  case val of
+    "true"  -> return (Boolean True)
+    "false" -> return (Boolean False)
+    _       -> return (Boolean False)
+
+expressions :: Parser [Expression]
+expressions = do
+  _ <- whitespace
+  h <- expression
+  _ <- whitespace
+  t <- expressions <|> pure []
+  return (h : t)
+  
+list :: Parser Expression
+list = do
+  _ <- whitespace
+  _ <- char '('
+  body <- expressions
+  _ <- char ')'
+    
+  return (List body)
+  
+nil :: Parser Expression
+nil = do
+  _ <- string "()" <|> string "nil"
+  return Nil
+
+expression :: Parser Expression
+expression =
+  boolean <|>
+  number <|>
+  character <|>
+  text <|>
+  symbol <|>
+  nil <|>
+  list

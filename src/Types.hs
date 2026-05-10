@@ -6,7 +6,6 @@ data Expression
   | Text String
   | Character Char
   | Boolean Bool
-  | Lambda [String] Expression
   | List [Expression]
   | Nil
 
@@ -17,9 +16,8 @@ instance Show Expression where
   show (Character c) = show c
   show (Boolean True) = "true"
   show (Boolean False) = "false"
-  show (Lambda args e) = "lambda" ++ show args ++ " -> " ++ show e
   show (List []) = ""
-  show (List (h:t)) = show h ++ show t
+  show (List l) = show l
   show Nil = "nil"
 
 instance Eq Expression where
@@ -30,3 +28,20 @@ instance Eq Expression where
   (List a) == (List b) = a == b
   _ == _ = False
 
+isDigit :: Char -> Bool
+isDigit c = c `elem` ['0'..'9']
+
+isSign :: Char -> Bool
+isSign c = isDigit c || c `elem` "+-"
+
+isNumericChar :: Char -> Bool
+isNumericChar c = isDigit c || c == '.'
+
+isAlphabetic :: Char -> Bool
+isAlphabetic c = c `elem` ['a'..'z'] || c `elem` ['A'..'Z']
+
+isAlphanumeric :: Char -> Bool
+isAlphanumeric c = isAlphabetic c || isDigit c
+
+isSymbolChar :: Char -> Bool
+isSymbolChar c = isAlphanumeric c || c `elem` "?!-_+*/<>="
