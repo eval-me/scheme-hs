@@ -43,5 +43,8 @@ isAlphabetic c = c `elem` ['a'..'z'] || c `elem` ['A'..'Z']
 isAlphanumeric :: Char -> Bool
 isAlphanumeric c = isAlphabetic c || isDigit c
 
+isOperand :: Char -> Bool
+isOperand c = c `elem` "<>=+-*/%|:"
+
 isSymbolChar :: Char -> Bool
 isSymbolChar c = isAlphanumeric c || c `elem` "?!-_+*/<>="

@@ -83,10 +83,14 @@ whitespace :: Parser ()
 whitespace = ignore ' ' <|> ignore '\n' <|> ignore '\t'
 
 symbol :: Parser Expression
-symbol = do
-  h <- sat isAlphabetic
-  t <- many isSymbolChar
-  return (Symbol (h : t))
+symbol = (do
+             h <- sat isAlphabetic
+             t <- many isSymbolChar
+             return (Symbol (h : t)))
+         <|>
+         (do
+             operand <- some isOperand
+             return (Symbol operand))
 
 number :: Parser Expression
 number = do
